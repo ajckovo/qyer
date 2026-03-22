@@ -1,2 +1,433 @@
-# qyer
-全员恶人开黑
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>无畏契约 - 随机组队（强制四定位）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            border-bottom: 2px solid #4a4a8a;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            color: #e94560;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+        }
+        .header p {
+            font-size: 1.1rem;
+            color: #a5d8ff;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        .filter-group label {
+            font-size: 1.1rem;
+            color: #fff;
+        }
+        .filter-group select {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: 2px solid #4a4a8a;
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+        }
+        #randomBtn {
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, #e94560, #ff2e63);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all .3s ease;
+            box-shadow: 0 4px 15px rgba(233,69,96,.4);
+        }
+        #randomBtn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(233,69,96,.6);
+        }
+        .teams-result {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 40px;
+            margin: 40px 0;
+        }
+        .team-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 30px;
+            width: 500px;
+            box-shadow: 0 8px 32px rgba(0,0,0,.2);
+            border: 1px solid rgba(255,255,255,.2);
+        }
+        .team-card h2 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid;
+        }
+        .team1 h2 { border-color: #00f5d4; color: #00f5d4; }
+        .team2 h2 { border-color: #e94560; color: #e94560; }
+        .hero-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px,1fr));
+            gap: 15px;
+        }
+        .hero-slot {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            transition: transform .3s ease;
+        }
+        .hero-slot:hover { transform: scale(1.05); }
+        .hero-slot img {
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            margin-bottom: 8px;
+            border: 2px solid #4a4a8a;
+        }
+        .hero-slot .name { font-size: .9rem; color: #fff; }
+        .hero-slot .role {
+            font-size: .7rem; color: #a5d8ff;
+            background: rgba(74,74,138,.5);
+            padding: 2px 6px; border-radius: 8px; margin-top: 4px;
+        }
+        .hero-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+            gap: 20px; margin-top: 40px;
+        }
+        .hero-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px; padding: 15px;
+            text-align: center; transition: all .3s ease;
+        }
+        .hero-item:hover {
+            background: rgba(255,255,255,0.1); transform: translateY(-5px);
+        }
+        .hero-item img { width: 100px; height: 100px; border-radius: 50%; margin-bottom: 10px; }
+        .hero-item h3 { color: #fff; font-size: 1.1rem; margin-bottom: 5px; }
+        .hero-item p { color: #a5d8ff; font-size: .9rem; }
+        .empty-tip { text-align: center; font-size: 1.2rem; color: #a5d8ff; padding: 40px 0; }
+        @media (max-width:768px){
+            .header h1 { font-size: 2rem; }
+            .controls { flex-direction: column; align-items: center; }
+            .team-card { width: 90%; }
+            .hero-grid { grid-template-columns: repeat(2,1fr); }
+            .hero-list { grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>无畏契约 - 随机平衡组队</h1>
+        <p>每队必含：决斗者 / 守卫者 / 控场者 / 先锋｜定位位置随机｜队内不重复｜两队可重复</p>
+    </div>
+
+    <div class="controls">
+        <div class="filter-group">
+            <label>全局筛选：</label>
+            <select id="roleFilter">
+                <option value="all">全部角色</option>
+                <option value="决斗者">决斗者</option>
+                <option value="守卫者">守卫者</option>
+                <option value="控场者">控场者</option>
+                <option value="先锋">先锋</option>
+            </select>
+        </div>
+        <button id="randomBtn">🎲 随机生成平衡两队</button>
+    </div>
+
+    <div class="teams-result" id="teamsResult">
+        <div class="empty-tip">点击按钮生成平衡阵容</div>
+    </div>
+
+    <div class="hero-list" id="heroList"></div>
+</div>
+
+<script>
+        const heroes = [
+                                    {
+                name: "盖可",
+                role: "先锋",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec87061d3e.webp"
+            },
+            {
+                name: "黑梦",
+                role: "先锋",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec8798c763.webp"
+            },
+            {
+                name: "猎枭",
+                role: "先锋",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec879d4b57.webp"
+            },
+            {
+                name: "斯凯",
+                role: "先锋",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec870db4d0.webp"
+            },
+            {
+                name: "钛狐",
+                role: "先锋",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec870a8552.webp"
+            },
+            {
+                name: "铁臂",
+                role: "先锋",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec870a19e4.webp"
+            },
+            {
+                name: "KO",
+                role: "先锋",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec870af9dd.webp"
+            },
+                        {
+                name: "钢索",
+                role: "守卫者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec7c59ec16.webp"
+            },
+            {
+                name: "禁灭",
+                role: "守卫者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec7bc5f33d.webp"
+            },
+            {
+                name: "零",
+                role: "守卫者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec7bc5f7b7.webp"
+            },
+                        {
+                name: "奇乐",
+                role: "守卫者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec7bca8429.webp"
+            },
+                        {
+                name: "尚博乐",
+                role: "守卫者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec7bc9f501.webp"
+            },
+                        {
+                name: "维斯",
+                role: "守卫者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec7c55f874.webp"
+            },
+            {
+                name: "贤者",
+                role: "守卫者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec7bbf240a.webp"
+            },
+            {
+                name: "不死鸟",
+                role: "决斗者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec484e5a46.webp"
+            },
+                        {
+                name: "幻棱",
+                role: "决斗者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec484a7e2b.webp"
+            },
+            {
+                name: "捷风",
+                role: "决斗者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec654d893d.webp"
+            },
+
+            {
+                name: "雷兹",
+                role: "决斗者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec484b8a3c.webp"
+            },
+                        {
+                name: "霓虹",
+                role: "决斗者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec4844acfd.webp"
+            },
+                        {
+                name: "芮娜",
+                role: "决斗者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec484eda54.webp"
+            },
+            {
+                name: "夜露",
+                role: "决斗者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec6550748a.webp"
+            },
+            {
+                name: "壹绝",
+                role: "决斗者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec654c96ad.webp"
+            },
+
+            {
+                name: "迷核",
+                role: "控场者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec6ebdad59.webp"
+            },
+            {
+                name: "海神",
+                role: "控场者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec6eb98498.webp"
+            },
+            {
+                name: "蝰蛇",
+                role: "控场者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec6f4ce043.webp"
+            },
+            {
+                name: "炼狱",
+                role: "控场者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec6ebcbd70.webp"
+            },
+            {
+                name: "暮蝶",
+                role: "控场者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec6ec04695.webp"
+            },
+                        {
+                name: "星礈",
+                role: "控场者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec6f4dbb83.webp"
+            },
+            {
+                name: "幽影",
+                role: "控场者",
+                img: "https://picui.ogmua.cn/s1/2026/03/22/69bec6ebbda9c.webp"
+            },
+
+        ];
+
+const mustRoles = ["决斗者","守卫者","控场者","先锋"];
+const randomBtn = document.getElementById("randomBtn");
+const roleFilter = document.getElementById("roleFilter");
+const teamsResult = document.getElementById("teamsResult");
+const heroList = document.getElementById("heroList");
+
+function renderHeroList(arr){
+    heroList.innerHTML = "";
+    arr.forEach(h=>{
+        const d = document.createElement("div");
+        d.className="hero-item";
+        d.innerHTML=`<img src="${h.img}"><h3>${h.name}</h3><p>${h.role}</p>`;
+        heroList.appendChild(d);
+    });
+}
+
+// 生成一队：5人、队内不重复、必含四种定位、定位位置随机
+function makeOnePool(pool){
+    let team = [];
+    let usedNames = new Set();
+
+    // 第一步：收集四种定位各一个（确保类型齐全）
+    let roleHeroes = [];
+    for(let r of mustRoles){
+        let sameRole = pool.filter(x=>x.role===r && !usedNames.has(x.name));
+        let pick = sameRole[Math.floor(Math.random()*sameRole.length)];
+        roleHeroes.push(pick);
+        usedNames.add(pick.name);
+    }
+
+    // 第二步：随机补1个队内不重复的英雄
+    let extraHero;
+    do {
+        let idx = Math.floor(Math.random()*pool.length);
+        extraHero = pool[idx];
+    } while(usedNames.has(extraHero.name));
+    roleHeroes.push(extraHero);
+    usedNames.add(extraHero.name);
+
+    // 第三步：打乱顺序（核心修改：让四种定位的位置完全随机）
+    let shuffledTeam = roleHeroes.sort(() => Math.random() - 0.5);
+    
+    return shuffledTeam;
+}
+
+function generate(){
+    let all = [...heroes];
+    let sel = roleFilter.value;
+    if(sel !== "all") all = all.filter(h=>h.role===sel);
+
+    // 检查：四种定位是否都有可用英雄
+    let ok = mustRoles.every(r=>all.some(h=>h.role===r));
+    if(!ok){
+        teamsResult.innerHTML = `<div class="empty-tip">当前筛选缺少某种定位，请选【全部角色】</div>`;
+        return;
+    }
+
+    let t1 = makeOnePool(all);
+    let t2 = makeOnePool(all);
+
+    renderTeams(t1,t2);
+}
+
+function renderTeams(t1,t2){
+    function html(arr){
+        return arr.map(h=>`
+            <div class="hero-slot">
+                <img src="${h.img}">
+                <div class="name">${h.name}</div>
+                <div class="role">${h.role}</div>
+            </div>
+        `).join("");
+    }
+    teamsResult.innerHTML = `
+        <div class="team-card team1"><h2>第一队</h2><div class="hero-grid">${html(t1)}</div></div>
+        <div class="team-card team2"><h2>第二队</h2><div class="hero-grid">${html(t2)}</div></div>
+    `;
+    // 入场动画
+    let cards = document.querySelectorAll(".team-card");
+    cards.forEach((c,i)=>{
+        c.style.opacity=0;
+        c.style.transform=`translateX(${i?50:-50}px)`;
+        setTimeout(()=>{
+            c.style.transition="all .4s ease";
+            c.style.opacity=1;
+            c.style.transform="translateX(0)";
+        },100*(i+1));
+    });
+}
+
+roleFilter.addEventListener("change",()=>{
+    let v=roleFilter.value;
+    let list = v==="all"?heroes:heroes.filter(h=>h.role===v);
+    renderHeroList(list);
+});
+randomBtn.addEventListener("click",generate);
+window.onload=()=>renderHeroList(heroes);
+</script>
+</body>
+</html>

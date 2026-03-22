@@ -76,6 +76,21 @@
             transform: translateY(-3px);
             box-shadow: 0 6px 20px rgba(233,69,96,.6);
         }
+        #ghostBtn {
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, #ffd166, #ff9f1c);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all .3s ease;
+            box-shadow: 0 4px 15px rgba(255,209,102,.4);
+        }
+        #ghostBtn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255,209,102,.6);
+        }
         .teams-result {
             display: flex;
             flex-wrap: wrap;
@@ -111,6 +126,23 @@
             background: rgba(255,255,255,0.1);
             border-radius: 10px;
             transition: transform .3s ease;
+            position: relative;
+        }
+        .hero-slot.ghost {
+            background: rgba(255,209,102,0.2);
+            border: 2px solid #ffd166;
+        }
+        .hero-slot.ghost::after {
+            content: "👻 内鬼";
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: #ffd166;
+            color: #16213e;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
         }
         .hero-slot:hover { transform: scale(1.05); }
         .hero-slot img {
@@ -118,6 +150,10 @@
             border-radius: 50%;
             margin-bottom: 8px;
             border: 2px solid #4a4a8a;
+        }
+        .hero-slot.ghost img {
+            border-color: #ffd166;
+            box-shadow: 0 0 15px rgba(255,209,102,0.8);
         }
         .hero-slot .name { font-size: .9rem; color: #fff; }
         .hero-slot .role {
@@ -142,6 +178,13 @@
         .hero-item h3 { color: #fff; font-size: 1.1rem; margin-bottom: 5px; }
         .hero-item p { color: #a5d8ff; font-size: .9rem; }
         .empty-tip { text-align: center; font-size: 1.2rem; color: #a5d8ff; padding: 40px 0; }
+        .ghost-tip {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #ffd166;
+            margin: 20px 0;
+            text-shadow: 0 0 10px rgba(255,209,102,0.8);
+        }
         @media (max-width:768px){
             .header h1 { font-size: 2rem; }
             .controls { flex-direction: column; align-items: center; }
@@ -155,7 +198,7 @@
 <div class="container">
     <div class="header">
         <h1>无畏契约 - 随机平衡组队</h1>
-        <p>每队必含：决斗者 / 守卫者 / 控场者 / 先锋｜定位位置随机｜队内不重复｜两队可重复</p>
+        <p>每队必含：决斗 / 哨位 / 烟位 / 先锋｜定位位置随机｜队内不重复｜两队可重复</p>
     </div>
 
     <div class="controls">
@@ -163,15 +206,17 @@
             <label>全局筛选：</label>
             <select id="roleFilter">
                 <option value="all">全部角色</option>
-                <option value="决斗者">决斗者</option>
-                <option value="守卫者">守卫者</option>
-                <option value="控场者">控场者</option>
+                <option value="决斗">决斗</option>
+                <option value="哨位">哨位</option>
+                <option value="烟位">烟位</option>
                 <option value="先锋">先锋</option>
             </select>
         </div>
         <button id="randomBtn">🎲 随机生成平衡两队</button>
+        <button id="ghostBtn" disabled>👻 每队随机选取一名内鬼</button>
     </div>
 
+    <div id="ghostTip" class="ghost-tip" style="display: none;"></div>
     <div class="teams-result" id="teamsResult">
         <div class="empty-tip">点击按钮生成平衡阵容</div>
     </div>
@@ -181,7 +226,7 @@
 
 <script>
         const heroes = [
-                                    {
+            {
                 name: "盖可",
                 role: "先锋",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec87061d3e.webp"
@@ -216,126 +261,131 @@
                 role: "先锋",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec870af9dd.webp"
             },
-                        {
+            {
                 name: "钢索",
-                role: "守卫者",
+                role: "哨位",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec7c59ec16.webp"
             },
             {
                 name: "禁灭",
-                role: "守卫者",
+                role: "哨位",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec7bc5f33d.webp"
             },
             {
                 name: "零",
-                role: "守卫者",
+                role: "哨位",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec7bc5f7b7.webp"
             },
-                        {
+            {
                 name: "奇乐",
-                role: "守卫者",
+                role: "哨位",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec7bca8429.webp"
             },
-                        {
+            {
                 name: "尚博乐",
-                role: "守卫者",
+                role: "哨位",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec7bc9f501.webp"
             },
-                        {
+            {
                 name: "维斯",
-                role: "守卫者",
+                role: "哨位",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec7c55f874.webp"
             },
             {
                 name: "贤者",
-                role: "守卫者",
+                role: "哨位",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec7bbf240a.webp"
             },
             {
                 name: "不死鸟",
-                role: "决斗者",
+                role: "决斗",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec484e5a46.webp"
             },
-                        {
+            {
                 name: "幻棱",
-                role: "决斗者",
+                role: "决斗",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec484a7e2b.webp"
             },
             {
                 name: "捷风",
-                role: "决斗者",
+                role: "决斗",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec654d893d.webp"
             },
-
             {
                 name: "雷兹",
-                role: "决斗者",
+                role: "决斗",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec484b8a3c.webp"
             },
-                        {
+            {
                 name: "霓虹",
-                role: "决斗者",
+                role: "决斗",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec4844acfd.webp"
             },
-                        {
+            {
                 name: "芮娜",
-                role: "决斗者",
+                role: "决斗",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec484eda54.webp"
             },
             {
                 name: "夜露",
-                role: "决斗者",
+                role: "决斗",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec6550748a.webp"
             },
             {
                 name: "壹绝",
-                role: "决斗者",
+                role: "决斗",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec654c96ad.webp"
             },
-
             {
                 name: "迷核",
-                role: "控场者",
+                role: "烟位",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec6ebdad59.webp"
             },
             {
                 name: "海神",
-                role: "控场者",
+                role: "烟位",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec6eb98498.webp"
             },
             {
                 name: "蝰蛇",
-                role: "控场者",
+                role: "烟位",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec6f4ce043.webp"
             },
             {
                 name: "炼狱",
-                role: "控场者",
+                role: "烟位",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec6ebcbd70.webp"
             },
             {
                 name: "暮蝶",
-                role: "控场者",
+                role: "烟位",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec6ec04695.webp"
             },
-                        {
+            {
                 name: "星礈",
-                role: "控场者",
+                role: "烟位",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec6f4dbb83.webp"
             },
             {
                 name: "幽影",
-                role: "控场者",
+                role: "烟位",
                 img: "https://picui.ogmua.cn/s1/2026/03/22/69bec6ebbda9c.webp"
             },
-
         ];
 
-const mustRoles = ["决斗者","守卫者","控场者","先锋"];
+const mustRoles = ["决斗","哨位","烟位","先锋"];
 const randomBtn = document.getElementById("randomBtn");
+const ghostBtn = document.getElementById("ghostBtn");
 const roleFilter = document.getElementById("roleFilter");
 const teamsResult = document.getElementById("teamsResult");
 const heroList = document.getElementById("heroList");
+const ghostTip = document.getElementById("ghostTip");
+
+// 存储当前生成的两队数据
+let currentTeams = {
+    team1: [],
+    team2: []
+};
 
 function renderHeroList(arr){
     heroList.innerHTML = "";
@@ -385,19 +435,30 @@ function generate(){
     let ok = mustRoles.every(r=>all.some(h=>h.role===r));
     if(!ok){
         teamsResult.innerHTML = `<div class="empty-tip">当前筛选缺少某种定位，请选【全部角色】</div>`;
+        ghostBtn.disabled = true; // 禁用内鬼按钮
+        ghostTip.style.display = "none";
         return;
     }
 
     let t1 = makeOnePool(all);
     let t2 = makeOnePool(all);
 
+    // 保存当前队伍数据
+    currentTeams.team1 = t1;
+    currentTeams.team2 = t2;
+
+    // 启用内鬼按钮
+    ghostBtn.disabled = false;
+    // 隐藏内鬼提示
+    ghostTip.style.display = "none";
+
     renderTeams(t1,t2);
 }
 
 function renderTeams(t1,t2){
-    function html(arr){
-        return arr.map(h=>`
-            <div class="hero-slot">
+    function html(arr, teamNum){
+        return arr.map((h, index)=>`
+            <div class="hero-slot" data-team="${teamNum}" data-index="${index}">
                 <img src="${h.img}">
                 <div class="name">${h.name}</div>
                 <div class="role">${h.role}</div>
@@ -405,8 +466,8 @@ function renderTeams(t1,t2){
         `).join("");
     }
     teamsResult.innerHTML = `
-        <div class="team-card team1"><h2>第一队</h2><div class="hero-grid">${html(t1)}</div></div>
-        <div class="team-card team2"><h2>第二队</h2><div class="hero-grid">${html(t2)}</div></div>
+        <div class="team-card team1"><h2>第一队</h2><div class="hero-grid">${html(t1, 1)}</div></div>
+        <div class="team-card team2"><h2>第二队</h2><div class="hero-grid">${html(t2, 2)}</div></div>
     `;
     // 入场动画
     let cards = document.querySelectorAll(".team-card");
@@ -421,12 +482,69 @@ function renderTeams(t1,t2){
     });
 }
 
+// 每队随机选取一名内鬼
+function selectGhost(){
+    // 清除之前的内鬼标记
+    document.querySelectorAll(".hero-slot.ghost").forEach(slot => {
+        slot.classList.remove("ghost");
+    });
+
+    // 存储两队内鬼信息
+    let ghostInfo = {
+        team1: {},
+        team2: {}
+    };
+
+    // 为第一队选内鬼
+    const randomIndex1 = Math.floor(Math.random() * 5);
+    ghostInfo.team1.index = randomIndex1;
+    ghostInfo.team1.hero = currentTeams.team1[randomIndex1];
+    
+    // 为第二队选内鬼
+    const randomIndex2 = Math.floor(Math.random() * 5);
+    ghostInfo.team2.index = randomIndex2;
+    ghostInfo.team2.hero = currentTeams.team2[randomIndex2];
+    
+    // 标记第一队内鬼
+    const ghostSlot1 = document.querySelector(`.hero-slot[data-team="1"][data-index="${randomIndex1}"]`);
+    ghostSlot1.classList.add("ghost");
+    // 标记第二队内鬼
+    const ghostSlot2 = document.querySelector(`.hero-slot[data-team="2"][data-index="${randomIndex2}"]`);
+    ghostSlot2.classList.add("ghost");
+
+    // 显示内鬼提示
+    ghostTip.style.display = "block";
+    ghostTip.textContent = `👻 内鬼是：第一队的 ${ghostInfo.team1.hero.name}（${ghostInfo.team1.hero.role}）、第二队的 ${ghostInfo.team2.hero.name}（${ghostInfo.team2.hero.role}）`;
+    
+    // 内鬼标记动画（依次播放）
+    ghostSlot1.animate([
+        { transform: 'scale(1)' },
+        { transform: 'scale(1.1)' },
+        { transform: 'scale(1)' }
+    ], {
+        duration: 1000,
+        iterations: 2
+    });
+    
+    setTimeout(() => {
+        ghostSlot2.animate([
+            { transform: 'scale(1)' },
+            { transform: 'scale(1.1)' },
+            { transform: 'scale(1)' }
+        ], {
+            duration: 1000,
+            iterations: 2
+        });
+    }, 500);
+}
+
 roleFilter.addEventListener("change",()=>{
     let v=roleFilter.value;
     let list = v==="all"?heroes:heroes.filter(h=>h.role===v);
     renderHeroList(list);
 });
 randomBtn.addEventListener("click",generate);
+ghostBtn.addEventListener("click", selectGhost);
 window.onload=()=>renderHeroList(heroes);
 </script>
 </body>

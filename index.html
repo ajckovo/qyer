@@ -91,6 +91,29 @@
             transform: translateY(-3px);
             box-shadow: 0 6px 20px rgba(255,209,102,.6);
         }
+        /* 新增：随机选图按钮样式 */
+        #mapBtn {
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, #00f5d4, #00bb9f);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all .3s ease;
+            box-shadow: 0 4px 15px rgba(0,245,212,.4);
+        }
+        #mapBtn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,245,212,.6);
+        }
+        #mapBtn:disabled {
+            background: linear-gradient(45deg, #666, #999);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.7;
+        }
         
         /* 核心修改1：间距放大2倍 - gap从40px → 120px（原基础上×3，实现「再多两倍」） */
         .teams-result {
@@ -131,12 +154,43 @@
             padding: 0 60px; /* 原0 20px → 0 60px（增加2倍） */
             /* VS图标动画 */
             animation: vsPulse 1.5s infinite ease-in-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        /* 新增：地图展示样式 */
+        .map-display {
+            width: 180px;
+            height: 120px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #00f5d4;
+            box-shadow: 0 0 15px rgba(0,245,212,0.6);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all .4s ease .2s;
+        }
+        .map-display.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .map-display img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .map-name {
+            font-size: 1rem;
+            color: #00f5d4;
+            text-shadow: 0 0 10px rgba(0,245,212,0.8);
+            text-align: center;
         }
         /* VS图标呼吸动画 */
-        @keyframes vsPulse {
+        /* @keyframes vsPulse {
             0%, 100% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.2); opacity: 0.8; }
-        }
+        } */
         
         /* 角色网格适配缩小后的卡片 */
         .hero-grid {
@@ -250,6 +304,10 @@
                 font-size: 2rem; /* 移动端VS图标缩小 */
                 padding: 0 30px; /* 原0 10px → 0 30px（增加2倍） */
             }
+            .map-display {
+                width: 140px;
+                height: 90px;
+            }
             .hero-list { grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); }
         }
     </style>
@@ -274,6 +332,8 @@
         </div>
         <button id="randomBtn">🎲 随机生成平衡两队</button>
         <button id="ghostBtn" disabled>👻 每队随机选取一名内鬼</button>
+        <!-- 新增：随机选图按钮 -->
+        <button id="mapBtn" disabled>🗺️ 随机选择比赛地图</button>
     </div>
 
     <div id="ghostTip" class="ghost-tip" style="display: none;"></div>
@@ -433,9 +493,63 @@
             },
         ];
 
+        // 新增：地图数据（名称+图片）
+        const maps = [
+            {
+                name: "裂变峡谷",
+                img: "https://picui.ogmua.cn/s1/2026/03/23/69c11ca8ca541.webp"
+            },
+            {
+                name: "亚海悬城",
+                img: "https://picui.ogmua.cn/s1/2026/03/23/69c1193595575.webp"
+            },
+            {
+                name: "莲华古城",
+                img: "https://picui.ogmua.cn/s1/2026/03/23/69c1192de0bed.webp"
+            },
+            {
+                name: "幽邃地窟",
+                img: "https://picui.ogmua.cn/s1/2026/03/23/69c1192e0552c.webp"
+            },
+            {
+                name: "微风岛屿",
+                img: "https://picui.ogmua.cn/s1/2026/03/23/69c1192da0e71.webp"
+            },
+            {
+                name: "霓虹町",
+                img: "https://picui.ogmua.cn/s1/2026/03/23/69c1192dda7d9.webp"
+            },
+
+            {
+                name: "源工重镇",
+                img: "https://picui.ogmua.cn/s1/2026/03/23/69c11bb184f33.webp"
+            },
+            {
+                name: "森寒东港",
+                img: "https://picui.ogmua.cn/s1/2026/03/23/69c11bb17d345.webp"
+            },
+            {
+                name: "日落之城",
+                img: "https://picui.ogmua.cn/s1/2026/03/23/69c11bb186115.webp"
+            },
+            {
+                name: "深海明珠",
+                img: "https://picui.ogmua.cn/s1/2026/03/23/69c11bb16ac64.webp"
+            },
+            {
+                name: "隐世修所",
+                img: "https://picui.ogmua.cn/s1/2026/03/23/69c11bb14de3a.webp"
+            },
+            {
+                name: "盐海矿镇",
+                img: "https://picui.ogmua.cn/s1/2026/03/23/69c1192df29b6.webp"
+            }
+        ];
+
 const mustRoles = ["决斗","哨位","烟位","先锋"];
 const randomBtn = document.getElementById("randomBtn");
 const ghostBtn = document.getElementById("ghostBtn");
+const mapBtn = document.getElementById("mapBtn"); // 新增：选图按钮
 const roleFilter = document.getElementById("roleFilter");
 const teamsResult = document.getElementById("teamsResult");
 const heroList = document.getElementById("heroList");
@@ -446,6 +560,8 @@ let currentTeams = {
     team1: [],
     team2: []
 };
+// 存储当前选中的地图
+let currentMap = null;
 
 function renderHeroList(arr){
     heroList.innerHTML = "";
@@ -496,6 +612,7 @@ function generate(){
     if(!ok){
         teamsResult.innerHTML = `<div class="empty-tip">当前筛选缺少某种定位，请选【全部角色】</div>`;
         ghostBtn.disabled = true; // 禁用内鬼按钮
+        mapBtn.disabled = true; // 禁用选图按钮
         ghostTip.style.display = "none";
         return;
     }
@@ -507,15 +624,18 @@ function generate(){
     currentTeams.team1 = t1;
     currentTeams.team2 = t2;
 
-    // 启用内鬼按钮
+    // 启用内鬼按钮和选图按钮
     ghostBtn.disabled = false;
+    mapBtn.disabled = false;
     // 隐藏内鬼提示
     ghostTip.style.display = "none";
+    // 重置当前地图
+    currentMap = null;
 
     renderTeams(t1,t2);
 }
 
-// 核心修改4：渲染队伍时添加VS图标
+// 核心修改4：渲染队伍时添加VS图标 + 地图展示区域
 function renderTeams(t1,t2){
     function html(arr, teamNum){
         return arr.map((h, index)=>`
@@ -527,10 +647,17 @@ function renderTeams(t1,t2){
             </div>
         `).join("");
     }
-    // 队伍容器中插入VS图标
+    // 队伍容器中插入VS图标 + 地图展示区域
     teamsResult.innerHTML = `
         <div class="team-card team1"><h2>第一队</h2><div class="hero-grid">${html(t1, 1)}</div></div>
-        <div class="vs-icon">VS</div> <!-- 添加VS图标 -->
+        <div class="vs-icon">
+         <!-- 新增：地图展示区域 -->
+            <div class="map-display" id="mapDisplay">
+                <img src="" alt="">
+            </div>
+             <div class="map-name" id="mapName"></div>
+            VS
+        </div>
         <div class="team-card team2"><h2>第二队</h2><div class="hero-grid">${html(t2, 2)}</div></div>
     `;
     // 入场动画适配
@@ -554,6 +681,35 @@ function renderTeams(t1,t2){
         vsIcon.style.opacity=1;
         vsIcon.style.transform="scale(1)";
     }, 300);
+}
+
+// 新增：随机选择地图并展示
+function selectRandomMap() {
+    // 随机选择一个地图
+    const randomIndex = Math.floor(Math.random() * maps.length);
+    currentMap = maps[randomIndex];
+    
+    // 获取地图展示元素
+    const mapDisplay = document.getElementById("mapDisplay");
+    const mapName = document.getElementById("mapName");
+    
+    // 设置地图图片和名称
+    mapDisplay.querySelector("img").src = currentMap.img;
+    mapDisplay.querySelector("img").alt = currentMap.name;
+    mapName.textContent = currentMap.name;
+    
+    // 显示地图（添加动画类）
+    mapDisplay.classList.add("show");
+    
+    // 地图展示动画
+    mapDisplay.animate([
+        { transform: 'scale(1)' },
+        { transform: 'scale(1.05)' },
+        { transform: 'scale(1)' }
+    ], {
+        duration: 1500,
+        iterations: 1
+    });
 }
 
 // 每队随机选取一名内鬼
@@ -619,6 +775,7 @@ roleFilter.addEventListener("change",()=>{
 });
 randomBtn.addEventListener("click",generate);
 ghostBtn.addEventListener("click", selectGhost);
+mapBtn.addEventListener("click", selectRandomMap); // 新增：选图按钮点击事件
 window.onload=()=>renderHeroList(heroes);
 </script>
 </body>

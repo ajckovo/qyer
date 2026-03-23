@@ -114,7 +114,13 @@
             box-shadow: none;
             opacity: 0.7;
         }
-        
+        #ghostBtn:disabled {
+            background: linear-gradient(45deg, #666, #999);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.7;
+        }
         /* 核心修改1：间距放大2倍 - gap从40px → 120px（原基础上×3，实现「再多两倍」） */
         .teams-result {
             display: flex;
@@ -186,11 +192,6 @@
             text-shadow: 0 0 10px rgba(0,245,212,0.8);
             text-align: center;
         }
-        /* VS图标呼吸动画 */
-        /* @keyframes vsPulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); opacity: 0.8; }
-        } */
         
         /* 角色网格适配缩小后的卡片 */
         .hero-grid {
@@ -331,9 +332,9 @@
             </select>
         </div>
         <button id="randomBtn">🎲 随机生成平衡两队</button>
-        <button id="ghostBtn" disabled>👻 每队随机选取一名内鬼</button>
-        <!-- 新增：随机选图按钮 -->
         <button id="mapBtn" disabled>🗺️ 随机选择比赛地图</button>
+        <button id="ghostBtn" disabled>👻 每队随机选取一名内鬼</button>
+
     </div>
 
     <div id="ghostTip" class="ghost-tip" style="display: none;"></div>
@@ -345,6 +346,7 @@
 </div>
 
 <script>
+    // 角色
         const heroes = [
             {
                 name: "盖可",
@@ -774,8 +776,8 @@ roleFilter.addEventListener("change",()=>{
     renderHeroList(list);
 });
 randomBtn.addEventListener("click",generate);
-ghostBtn.addEventListener("click", selectGhost);
 mapBtn.addEventListener("click", selectRandomMap); // 新增：选图按钮点击事件
+ghostBtn.addEventListener("click", selectGhost);
 window.onload=()=>renderHeroList(heroes);
 </script>
 </body>

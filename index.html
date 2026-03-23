@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>无畏契约 - 随机组队（强制四定位）</title>
+    <title>无畏契约 - 随机平衡组队（强制四定位）</title>
     <style>
         * {
             margin: 0;
@@ -91,57 +91,83 @@
             transform: translateY(-3px);
             box-shadow: 0 6px 20px rgba(255,209,102,.6);
         }
+        
+        /* 核心修改1：间距放大2倍 - gap从40px → 120px（原基础上×3，实现「再多两倍」） */
         .teams-result {
             display: flex;
-            flex-wrap: wrap;
+            align-items: center; /* 垂直居中 */
             justify-content: center;
-            gap: 40px;
+            gap: 120px; /* 关键：原40px → 120px（增加2倍） */
             margin: 40px 0;
+            flex-wrap: wrap; /* 移动端自动换行 */
         }
+        
+        /* 核心修改2：队伍卡片缩小50%（原宽度500px → 250px） */
         .team-card {
             background: rgba(255,255,255,0.05);
             border-radius: 15px;
-            padding: 30px;
-            width: 500px;
+            padding: 15px; /* 内边距同步缩小 */
+            width: 250px; /* 原500px → 缩小50%为250px */
             box-shadow: 0 8px 32px rgba(0,0,0,.2);
             border: 1px solid rgba(255,255,255,.2);
         }
+        
         .team-card h2 {
             text-align: center;
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
+            font-size: 1.2rem; /* 标题字体缩小适配 */
+            margin-bottom: 10px;
+            padding-bottom: 5px;
             border-bottom: 2px solid;
         }
         .team1 h2 { border-color: #00f5d4; color: #00f5d4; }
         .team2 h2 { border-color: #e94560; color: #e94560; }
+        
+        /* 核心修改3：VS图标内边距放大2倍 - 0 20px → 0 60px（增加2倍） */
+        .vs-icon {
+            font-size: 2.5rem;
+            color: #e94560;
+            font-weight: bold;
+            text-shadow: 0 0 15px rgba(233, 69, 96, 0.8);
+            padding: 0 60px; /* 原0 20px → 0 60px（增加2倍） */
+            /* VS图标动画 */
+            animation: vsPulse 1.5s infinite ease-in-out;
+        }
+        /* VS图标呼吸动画 */
+        @keyframes vsPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+        
+        /* 角色网格适配缩小后的卡片 */
         .hero-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(90px,1fr));
-            gap: 15px;
+            grid-template-columns: 1fr;
+            gap: 10px; /* 间距同步缩小 */
+            justify-items: center;
         }
         .hero-slot {
             text-align: center;
-            padding: 10px;
+            padding: 8px;
             background: rgba(255,255,255,0.1);
-            border-radius: 10px;
+            border-radius: 8px;
             transition: transform .3s ease;
             position: relative;
+            width: 120px; /* 原200px → 同步缩小为120px */
         }
-        /* 序号样式 */
+        /* 序号样式适配 */
         .hero-slot .number {
             position: absolute;
-            top: -8px;
-            left: -8px;
+            top: -5px;
+            left: -5px;
             background: #4a4a8a;
             color: #fff;
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             font-weight: bold;
             border: 2px solid #fff;
         }
@@ -156,32 +182,34 @@
         .hero-slot.ghost::after {
             content: "👻 内鬼";
             position: absolute;
-            top: -10px;
-            right: -10px;
+            top: -8px;
+            right: -8px;
             background: #ffd166;
             color: #16213e;
-            font-size: 0.7rem;
-            padding: 2px 8px;
-            border-radius: 10px;
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 8px;
             font-weight: bold;
         }
         .hero-slot:hover { transform: scale(1.05); }
         .hero-slot img {
-            width: 60px; height: 60px;
+            width: 50px; /* 原80px → 缩小为50px */
+            height: 50px;
             border-radius: 50%;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             border: 2px solid #4a4a8a;
         }
         .hero-slot.ghost img {
             border-color: #ffd166;
-            box-shadow: 0 0 15px rgba(255,209,102,0.8);
+            box-shadow: 0 0 10px rgba(255,209,102,0.8);
         }
-        .hero-slot .name { font-size: .9rem; color: #fff; }
+        .hero-slot .name { font-size: 0.9rem; color: #fff; }
         .hero-slot .role {
-            font-size: .7rem; color: #a5d8ff;
+            font-size: 0.7rem; color: #a5d8ff;
             background: rgba(74,74,138,.5);
-            padding: 2px 6px; border-radius: 8px; margin-top: 4px;
+            padding: 2px 4px; border-radius: 6px; margin-top: 3px;
         }
+        
         .hero-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
@@ -206,11 +234,22 @@
             margin: 20px 0;
             text-shadow: 0 0 10px rgba(255,209,102,0.8);
         }
+        
+        /* 移动端适配 - 间距同步放大2倍 */
         @media (max-width:768px){
             .header h1 { font-size: 2rem; }
             .controls { flex-direction: column; align-items: center; }
-            .team-card { width: 90%; }
-            .hero-grid { grid-template-columns: repeat(2,1fr); }
+            .teams-result {
+                flex-direction: column; /* 移动端队伍竖向排列 */
+                gap: 40px; /* 原20px → 40px（增加2倍） */
+            }
+            .team-card { width: 90%; max-width: 250px; }
+            .hero-slot { width: 100px; }
+            .hero-slot img { width: 40px; height: 40px; }
+            .vs-icon { 
+                font-size: 2rem; /* 移动端VS图标缩小 */
+                padding: 0 30px; /* 原0 10px → 0 30px（增加2倍） */
+            }
             .hero-list { grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); }
         }
     </style>
@@ -476,11 +515,11 @@ function generate(){
     renderTeams(t1,t2);
 }
 
+// 核心修改4：渲染队伍时添加VS图标
 function renderTeams(t1,t2){
     function html(arr, teamNum){
         return arr.map((h, index)=>`
             <div class="hero-slot" data-team="${teamNum}" data-index="${index}">
-                <!-- 添加序号显示 -->
                 <div class="number">${index + 1}</div>
                 <img src="${h.img}">
                 <div class="name">${h.name}</div>
@@ -488,12 +527,16 @@ function renderTeams(t1,t2){
             </div>
         `).join("");
     }
+    // 队伍容器中插入VS图标
     teamsResult.innerHTML = `
         <div class="team-card team1"><h2>第一队</h2><div class="hero-grid">${html(t1, 1)}</div></div>
+        <div class="vs-icon">VS</div> <!-- 添加VS图标 -->
         <div class="team-card team2"><h2>第二队</h2><div class="hero-grid">${html(t2, 2)}</div></div>
     `;
-    // 入场动画
+    // 入场动画适配
     let cards = document.querySelectorAll(".team-card");
+    let vsIcon = document.querySelector(".vs-icon");
+    // 初始化隐藏
     cards.forEach((c,i)=>{
         c.style.opacity=0;
         c.style.transform=`translateX(${i?50:-50}px)`;
@@ -503,6 +546,14 @@ function renderTeams(t1,t2){
             c.style.transform="translateX(0)";
         },100*(i+1));
     });
+    // VS图标延迟显示动画
+    vsIcon.style.opacity=0;
+    vsIcon.style.transform="scale(0)";
+    setTimeout(()=>{
+        vsIcon.style.transition="all .4s ease .3s"; // 延迟0.3s显示
+        vsIcon.style.opacity=1;
+        vsIcon.style.transform="scale(1)";
+    }, 300);
 }
 
 // 每队随机选取一名内鬼

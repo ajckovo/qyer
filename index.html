@@ -651,7 +651,7 @@ function renderTeams(t1,t2){
     }
     // 队伍容器中插入VS图标 + 地图展示区域
     teamsResult.innerHTML = `
-        <div class="team-card team1"><h2>第一队</h2><div class="hero-grid">${html(t1, 1)}</div></div>
+        <div class="team-card team2"><h2>攻方</h2><div class="hero-grid">${html(t1, 1)}</div></div>
         <div class="vs-icon">
          <!-- 新增：地图展示区域 -->
             <div class="map-display" id="mapDisplay">
@@ -660,7 +660,7 @@ function renderTeams(t1,t2){
              <div class="map-name" id="mapName"></div>
             VS
         </div>
-        <div class="team-card team2"><h2>第二队</h2><div class="hero-grid">${html(t2, 2)}</div></div>
+        <div class="team-card team1"><h2>守方</h2><div class="hero-grid">${html(t2, 2)}</div></div>
     `;
     // 入场动画适配
     let cards = document.querySelectorAll(".team-card");
